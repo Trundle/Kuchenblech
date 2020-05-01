@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Kuchenblech</title>
+        <link rel="stylesheet" href="/static/css/reset.css"/>
+        <link rel="stylesheet" href="/static/css/app.css"/>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+        <script src="/static/js/sodium.js" async></script>
+    </head>
+    <body>
+        <main>
+            <div id="unlock_app"></div>
+
+            <h1 class="grid">Share a new secret with someone</h1>
+            <p>Welcome to <i>Kuchenblech</i>, the convenient minimal-trust secret sharing service.</p>
+            <p>Do you want to share a retractable secret such as some API key but you don't have a secure communication
+                channel around? <i>Kuchenblech</i> to the rescue! Once you click
+                on <i>Share</i> you get a link that you can send around and that will expose
+                the secret you shared - once.</p>
+            <p>All secrets are encrypted in your browser with a unique key. This key remains with you and is not sent
+                to the server. That means it's not possible for us to look at your secret. You choose who can see
+                your secrets!</p>
+
+            <div id="app"></div>
+            <script src="/static/js/app.js"></script>
+            <script>
+                if (location.hash && location.hash.length === 65) {
+                    const safeId = location.pathname.match(/\/safes\/([a-z0-9]+)/)[1];
+                    startUnlockApp(document.getElementById('unlock_app'), safeId, location.hash.substring(1));
+                } else {
+                    startApp(document.getElementById('app'));
+                }
+            </script>
+        </main>
+    </body>
+</html>
