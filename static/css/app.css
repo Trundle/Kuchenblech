@@ -121,6 +121,14 @@ nav {
     animation-duration: 0.5s;
 }
 
+nav.visualRange {
+    display: flex;
+}
+
+nav.visualRange button + button {
+    margin-left: 0.5em;
+}
+
 nav.visualRange button:nth-of-type(2) {
     background-color: #dbac2b;
 }
@@ -176,6 +184,21 @@ nav.visualRange button:nth-of-type(5) {
 
     #unlock_app + h1 {
         margin-top: 2em;
+    }
+
+    nav.visualRange {
+        align-content: stretch;
+        justify-content: space-between;
+    }
+
+    nav.visualRange button {
+        padding: 1em 0.5em;
+        font-size: 14px;
+        flex-grow: 1;
+    }
+
+    nav.visualRange span {
+        display: none;
     }
 }
 

@@ -382,11 +382,11 @@ class AddExpirationStep extends Component {
                 <code>${this.state.secret}</code>
                 <p>${this.state.description}</p>
                 <nav class="visualRange">
-                    <button data-bind-click="${this.bind(() => this.nextStep(Number.MAX_SAFE_INTEGER))}">No expiration</button>
-                    <button data-bind-click="${this.bind(() => this.nextStep(3 * 24 * 3600))}">3 days</button>
-                    <button data-bind-click="${this.bind(() => this.nextStep(24 * 3600))}">1 day</button>
-                    <button data-bind-click="${this.bind(() => this.nextStep(12 * 3600))}">12 hours</button>
-                    <button data-bind-click="${this.bind(() => this.nextStep(3600))}">1 hour</button>
+                    <button data-bind-click="${this.bind(() => this.nextStep(Number.MAX_SAFE_INTEGER))}">No expi&shy;ration</button>
+                    <button data-bind-click="${this.bind(() => this.nextStep(3 * 24 * 3600))}">3 d<span>ays</span></button>
+                    <button data-bind-click="${this.bind(() => this.nextStep(24 * 3600))}">1 d<span>ay</span></button>
+                    <button data-bind-click="${this.bind(() => this.nextStep(12 * 3600))}">12 h<span>ours</span></button>
+                    <button data-bind-click="${this.bind(() => this.nextStep(3600))}">1 h<span>our</span></button>
                 </nav>
             </section>
         `;
