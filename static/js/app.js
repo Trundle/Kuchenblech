@@ -128,26 +128,33 @@ class Component {
 }
 
 
+/** The request safe does not exist. */
+class NotFound extends Error {}
+
+
 /**
  * API gateway to Kuchenblech's vault.
  */
 class VaultApi {
-    async createSafe(secrets) {
+    async createSafe(secrets, openDuration) {
         const [key, nonce, cipher] = await this._encrypt(JSON.stringify(secrets));
-        const safe = await this._request(
+        const {data} = await this._request(
             '/safes',
             {
                 nonce: nonce,
                 secrets: cipher,
-                open_duration: 3600
+                open_duration: openDuration
             });
-        return location.origin + safe.href + '#' + key;
+        return location.origin + data.href + '#' + key;
     }
 
     async unlockSafe(safeId, key) {
         // XXX handle doesn't exist case
-        const safe = await this._request('/safes/' + safeId, {});
-        const plain = await this._decrypt(key, safe.nonce, safe.secrets);
+        const {status, data} = await this._request('/safes/' + safeId, {});
+        if (status === 404) {
+            throw new NotFound();
+        }
+        const plain = await this._decrypt(key, data.nonce, data.secrets);
         return JSON.parse(plain);
     }
 
@@ -156,7 +163,8 @@ class VaultApi {
         return new Promise(resolve => {
             const request = new XMLHttpRequest();
             request.addEventListener(
-                'load', () => resolve(JSON.parse(request.responseText)));
+                'load',
+                () => resolve({status: request.status, data: JSON.parse(request.responseText)}));
             request.open(body === null ? 'GET' : 'POST', url);
             if (body !== null) {
                 request.setRequestHeader('Content-Type', 'application/json');
@@ -225,8 +233,9 @@ class OpenSafe extends Component {
         super();
 
         this.state = {
-            secret: "***",
-            description: "Loading secrets…"
+            secret: "",
+            description: "",
+            title: "Unlocking safe…"
         }
 
         const vaultApi = new VaultApi();
@@ -234,15 +243,39 @@ class OpenSafe extends Component {
             .then((secrets) => {
                 this.setState({
                     secret: secrets[0].secret,
-                    description: secrets[0].description
-                });
+                    description: secrets[0].description,
+                    title: ''
+                })
+            }, (error) => {
+                if (error instanceof NotFound) {
+                    this.setState({
+                        secret: '',
+                        description: 'Unfortunately, the request safe could not be found. Maybe it already expired.',
+                        title: 'Safe not found'
+                    });
+                } else {
+                    this.setState({
+                        secret: '',
+                        description: '',
+                        title: 'Ooops… something went wrong'
+                    });
+                }
             });
+    }
+
+    copyUrlToClipboard() {
+        const copyText = document.querySelector('.revealed-secret');
+        copyText.select();
+        document.execCommand('copy');
     }
 
     render() {
         return safeHtml`
             <section class="card">
-                <code>${this.state.secret}</code>
+                <h2>${this.state.title}</h2>
+                <textarea data-if="${this.cond(() => this.state.secret.length > 0)}" class="revealed-secret">${this.state.secret}</textarea>
+                <button data-if="${this.cond(() => this.state.secret.length > 0)}"
+                    data-bind-click="${this.bind(this.copyUrlToClipboard)}"><span class="icon-clipboard"></span></button>
                 <p>${this.state.description}</p>
             </section>
         `;
@@ -265,7 +298,7 @@ class FirstStep extends Component {
     }
 
     nextStep() {
-        const nextComponent = new SecondStep(this.state.secret, this.parentElement);
+        const nextComponent = new AddDescriptionStep(this.state.secret, this.parentElement);
         render(nextComponent, this.parentElement);
     }
 
@@ -279,8 +312,8 @@ class FirstStep extends Component {
     render() {
         return safeHtml`
             <section class="card">
-                <h2>Start with your first Secret</h2>
-                <textarea placeholder="Share your secret!" autofocus 
+                <h2>Start with your first secret</h2>
+                <textarea placeholder="Enter your secret" autofocus 
                     data-bind-input="${this.bind(this.onInput)}"></textarea>
                 <nav data-if="${this.cond(() => this.state.hasSecret)}">
                     <button data-bind-click="${this.bind(this.nextStep)}">Continue</button>
@@ -290,7 +323,7 @@ class FirstStep extends Component {
     }
 }
 
-class SecondStep extends Component {
+class AddDescriptionStep extends Component {
     constructor(secret, parentElement) {
         super();
 
@@ -305,8 +338,8 @@ class SecondStep extends Component {
         this.updateState({description: event.target.value});
     }
 
-    nextStep(event) {
-        const newComponent = new ThirdStep(this.state.secret, this.state.description);
+    nextStep() {
+        const newComponent = new AddExpirationStep(this.state.secret, this.state.description, this.parentElement);
         render(newComponent, this.parentElement);
     }
 
@@ -318,17 +351,53 @@ class SecondStep extends Component {
                 <textarea placeholder="Enter a description if needed" autofocus data-bind
                           data-bind-input="${this.bind(this.onInput)}"></textarea>
                 <nav>
-                    <button data-bind data-bind-click="${this.bind(this.nextStep)}">Continue</button>
+                    <button data-bind-click="${this.bind(this.nextStep)}">Continue</button>
                 </nav>
             </section>
         `;
     }
 }
 
-class ThirdStep extends Component {
-    constructor(secret, description) {
+class AddExpirationStep extends Component {
+    constructor(secret, description, parentElement) {
         super();
 
+        this.parentElement = parentElement;
+        this.state = {
+            description: description,
+            secret: secret
+        }
+    }
+
+    nextStep(openDuration) {
+        const newComponent = new LastStep(
+            this.state.secret, this.state.description, openDuration, this.parentElement);
+        render(newComponent, this.parentElement);
+    }
+
+    render() {
+        return safeHtml`
+            <section class="card">
+                <h2>Should the secret delete itself if it's not revealed in time?</h2>
+                <code>${this.state.secret}</code>
+                <p>${this.state.description}</p>
+                <nav>
+                    <button data-bind-click="${this.bind(() => this.nextStep(3 * 24 * 3600))}">3 days</button>
+                    <button data-bind-click="${this.bind(() => this.nextStep(24 * 3600))}">1 day</button>
+                    <button data-bind-click="${this.bind(() => this.nextStep(12 * 3600))}">12 hours</button>
+                    <button data-bind-click="${this.bind(() => this.nextStep(3600))}">1 hour</button>
+                    <button data-bind-click="${this.bind(() => this.nextStep(Number.MAX_SAFE_INTEGER))}">No expiration</button>
+                </nav>
+            </section>
+        `;
+    }
+}
+
+class LastStep extends Component {
+    constructor(secret, description, openDuration, parentElement) {
+        super();
+
+        this.parentElement = parentElement;
         this.state = {
             secret: secret,
             description: description,
@@ -337,11 +406,22 @@ class ThirdStep extends Component {
         };
 
         const vault = new VaultApi();
-        vault.createSafe([
-            {secret: this.state.secret, description: this.state.description}
-        ]).then(url => this.setState(Object.assign(
+        vault.createSafe(
+            [{secret: this.state.secret, description: this.state.description}],
+            openDuration
+        ).then(url => this.setState(Object.assign(
             {}, this.state,
             {heading: 'Your secret is ready to be shared', url: url})));
+    }
+
+    copyUrlToClipboard() {
+        const copyText = document.querySelector('#share_url');
+        copyText.select();
+        document.execCommand('copy');
+    }
+
+    startAgain() {
+        startApp(this.parentElement);
     }
 
     render() {
@@ -350,7 +430,12 @@ class ThirdStep extends Component {
                 <h2>${this.state.heading}</h2>
                 <code>${this.state.secret}</code>
                 <p>${this.state.description}</p>
-                <code>${this.state.url}</code>
+                <p class="vertical-spacer">Use the following link to share your secret:</p>
+                <div class="flex-container">
+                    <textarea readonly id="share_url" class="flex break-all">${this.state.url}</textarea>
+                </div>
+                <button data-bind-click="${this.bind(this.copyUrlToClipboard)}"><span class="icon-clipboard"></span></button>
+                <button data-bind-click="${this.bind(this.startAgain)}" class="secondary">I want to share another secret</button>
             </section>
         `;
     }

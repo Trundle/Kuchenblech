@@ -12,7 +12,7 @@
         <main>
             <div id="unlock_app"></div>
 
-            <h1 class="grid">Share a new secret with someone</h1>
+            <h1 id="app_header">Share a new secret with someone</h1>
             <p>Welcome to <i>Kuchenblech</i>, the convenient minimal-trust secret sharing service.</p>
             <p>Do you want to share a retractable secret such as some API key but you don't have a secure communication
                 channel around? <i>Kuchenblech</i> to the rescue! Once you click
@@ -26,6 +26,9 @@
             <script src="/static/js/app.js"></script>
             <script>
                 if (location.hash && location.hash.length === 65) {
+                    const header = document.querySelector('#app_header')
+                    header.parentElement.removeChild(header);
+
                     const safeId = location.pathname.match(/\/safes\/([a-z0-9]+)/)[1];
                     startUnlockApp(document.getElementById('unlock_app'), safeId, location.hash.substring(1));
                 } else {
@@ -33,5 +36,6 @@
                 }
             </script>
         </main>
+        <footer>Made with ❤️ at home. <a href="#">Source.</a></footer>
     </body>
 </html>
