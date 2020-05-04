@@ -121,6 +121,22 @@ nav {
     animation-duration: 0.5s;
 }
 
+nav.visualRange button:nth-of-type(2) {
+    background-color: #dbac2b;
+}
+
+nav.visualRange button:nth-of-type(3) {
+    background-color: #dbb857;
+}
+
+nav.visualRange button:nth-of-type(4) {
+    background-color: #dbc383;
+}
+
+nav.visualRange button:nth-of-type(5) {
+    background-color: #dbcfaf;
+}
+
 #share_url,.revealed-secret {
     font-size: 24px;
     display: block;
