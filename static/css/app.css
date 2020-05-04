@@ -20,7 +20,7 @@ footer a {
 main {
     margin: auto;
     max-width: 1200px;
-    padding: 50px;
+    padding: 2em;
 }
 
 h1 {
@@ -42,17 +42,16 @@ i {
 }
 
 
-main > .card {
-    margin-left: -2em;
-    margin-right: -2em;
+#app > .card {
+    margin: 2em -2em;
 }
 
 .card {
     border-radius: 0.5em;
     background-color: #3e5c97;
 
-    margin-top: 50px;
-    box-shadow: 0 3px 3px #1d2942;
+    margin-top: 2em;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
 
     padding: 2em;
 }
@@ -62,26 +61,24 @@ main > .card {
 }
 
 textarea {
-    box-sizing: border-box;
     width: 100%;
     resize: none;
-    border: none;
     border-radius: 0.5em;
     padding: 1em;
     height: 200px;
 }
 
 textarea:active, textarea:focus, button:active {
-    box-shadow: inset 0 0 2px #000;
+    box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.4);
 }
 
 button {
-    background-color: #d5a418;
+    background-color: #d69d00;
     border: none;
     padding: 1em;
     border-radius: 0.5em;
     color: #1d2942;
-    box-shadow: 0 3px 3px #1d2942;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
 }
 
 code {
@@ -132,7 +129,6 @@ nav {
     color: #fff;
     border: 0;
     padding: 0.5em;
-    box-sizing: border-box;
     height: auto;
     resize: none;
 }
@@ -141,6 +137,31 @@ nav {
     margin-top: 3em;
 }
 
+/**
+ First breakpoint: We want to have some space between the app's card and the edge of the browser.
+ */
+@media screen and (max-width: 1400px){
+    #app > .card {
+        margin: 2em -1.5em;
+    }
+
+    .card {
+        padding: 1.5em;
+    }
+}
+
+/**
+ Second breakpoint: Everything smaller and less paddings.
+ */
+@media screen and (max-width: 600px){
+    body {
+        font-size: 18px;
+    }
+
+    #unlock_app + h1 {
+        margin-top: 2em;
+    }
+}
 
 @keyframes appear {
     0% {
