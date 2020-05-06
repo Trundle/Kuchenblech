@@ -1,0 +1,11 @@
+[package]
+name = "kuchenblech"
+version = "0.1.0"
+authors = ["Andreas Stührk <andy@hammerhartes.de>"]
+edition = "2018"
+
+[dependencies]
+rand = "0.7"
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "0.2", features = ["macros"] }
+warp = "0.2"
