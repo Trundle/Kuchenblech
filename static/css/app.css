@@ -112,6 +112,10 @@ code {
     flex: auto;
 }
 
+.vertical-padding {
+    padding: 1em 0;
+}
+
 nav {
     margin-top: 1em;
 
@@ -148,13 +152,23 @@ nav.visualRange button:nth-of-type(5) {
 #share_url,.revealed-secret {
     font-size: 24px;
     display: block;
-    margin: 1em -0.5em;
+    margin: 0 -0.5em;
     background-color: #1d2942;
     color: #fff;
     border: 0;
     padding: 0.5em;
     height: auto;
     resize: none;
+    width: auto;
+}
+
+#share_url {
+    margin-right: 0;
+}
+
+#copy {
+    position: relative;
+    left: 0.5em;
 }
 
 #unlock_app + p {

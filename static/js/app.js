@@ -431,10 +431,10 @@ class LastStep extends Component {
                 <code>${this.state.secret}</code>
                 <p>${this.state.description}</p>
                 <p class="vertical-spacer">Use the following link to share your secret:</p>
-                <div class="flex-container">
+                <div class="flex-container vertical-padding">
                     <textarea readonly id="share_url" class="flex break-all">${this.state.url}</textarea>
+                    <button data-bind-click="${this.bind(this.copyUrlToClipboard)}" id="copy" title="Copy to clipboard"><span class="icon-clipboard"></span></button>
                 </div>
-                <button data-bind-click="${this.bind(this.copyUrlToClipboard)}"><span class="icon-clipboard"></span></button>
                 <button data-bind-click="${this.bind(this.startAgain)}" class="secondary">I want to share another secret</button>
             </section>
         `;
