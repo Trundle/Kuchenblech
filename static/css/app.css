@@ -169,6 +169,10 @@ nav.visualRange button:nth-of-type(5) {
 #copy {
     position: relative;
     left: 0.5em;
+    background-image: url('../img/clipboard.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
 }
 
 #unlock_app + p {
