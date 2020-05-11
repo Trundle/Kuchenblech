@@ -273,9 +273,13 @@ class OpenSafe extends Component {
         return safeHtml`
             <section class="card">
                 <h2>${this.state.title}</h2>
-                <textarea data-if="${this.cond(() => this.state.secret.length > 0)}" class="revealed-secret">${this.state.secret}</textarea>
-                <button data-if="${this.cond(() => this.state.secret.length > 0)}"
-                    data-bind-click="${this.bind(this.copyUrlToClipboard)}"><span class="icon-clipboard"></span></button>
+                <div class="flex-container vertical-padding">
+                    <textarea data-if="${this.cond(() => this.state.secret.length > 0)}"
+                        class="revealed-secret flex break-all" readonly>${this.state.secret}</textarea>
+                    <button data-if="${this.cond(() => this.state.secret.length > 0)}"
+                        data-bind-click="${this.bind(this.copyUrlToClipboard)}"
+                        id="copy"></button>
+                </div>
                 <p>${this.state.description}</p>
             </section>
         `;
@@ -313,7 +317,7 @@ class FirstStep extends Component {
         return safeHtml`
             <section class="card">
                 <h2>Start with your first secret</h2>
-                <textarea placeholder="Enter your secret" autofocus 
+                <textarea placeholder="Enter your secret" autofocus
                     data-bind-input="${this.bind(this.onInput)}"></textarea>
                 <nav data-if="${this.cond(() => this.state.hasSecret)}">
                     <button data-bind-click="${this.bind(this.nextStep)}">Continue</button>
