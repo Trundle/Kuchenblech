@@ -65,7 +65,10 @@ textarea {
     resize: none;
     border-radius: 0.5em;
     padding: 1em;
-    height: 200px;
+}
+
+textarea.editing {
+    min-height: 200px;
 }
 
 textarea:active, textarea:focus, button:active {
@@ -81,7 +84,7 @@ button {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
 }
 
-code {
+pre {
     display: block;
     margin: 1em -0.5em;
     background-color: #1d2942;
@@ -102,18 +105,13 @@ code {
     margin-top: 2em;
 }
 
-.flex-container {
-    display: flex;
-    flex-wrap: wrap;
-}
-
-.flex {
-    box-sizing: border-box;
-    flex: auto;
-}
-
 .vertical-padding {
     padding: 1em 0;
+}
+
+.right-action {
+    display: grid;
+    grid-template-columns: auto min-content;
 }
 
 nav {
@@ -167,8 +165,12 @@ nav.visualRange button:nth-of-type(5) {
     left: 0.5em;
     background-image: url('../img/clipboard.svg');
     background-repeat: no-repeat;
-    background-size: contain;
+    background-size: 80%;
     background-position: center;
+    margin: auto;
+}
+button#copy {
+    padding-right: 1rem;
 }
 
 #unlock_app + p {

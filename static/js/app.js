@@ -19,8 +19,14 @@ const safeHtml = (strings, ...values) => {
         output.push(string);
         let value = values[i];
         if (value) {
-            escapeHelper.innerText = value;
-            output.push(escapeHelper.innerHTML);
+            const lines = value.toString().split('\n');
+            lines.forEach((line, i) => {
+                escapeHelper.innerText = line;
+                if (i > 0) {
+                    output.push('\n');
+                }
+                output.push(escapeHelper.innerHTML);
+            });
         }
     });
     return output.join('');
@@ -272,10 +278,11 @@ class OpenSafe extends Component {
     render() {
         return safeHtml`
             <section class="card">
-                <h2>${this.state.title}</h2>
-                <div class="flex-container vertical-padding">
+                <h2 data-if="${this.cond(() => this.state.title.length > 0)}">${this.state.title}</h2>
+                <div class="right-action vertical-padding">
                     <textarea data-if="${this.cond(() => this.state.secret.length > 0)}"
-                        class="revealed-secret flex break-all" readonly>${this.state.secret}</textarea>
+                        rows="${this.state.secret.split('\n').length}"
+                        class="revealed-secret break-all" readonly>${this.state.secret}</textarea>
                     <button data-if="${this.cond(() => this.state.secret.length > 0)}"
                         data-bind-click="${this.bind(this.copyUrlToClipboard)}"
                         id="copy"></button>
@@ -317,7 +324,7 @@ class FirstStep extends Component {
         return safeHtml`
             <section class="card">
                 <h2>Start with your first secret</h2>
-                <textarea placeholder="Enter your secret" autofocus
+                <textarea placeholder="Enter your secret" autofocus class="editing"
                     data-bind-input="${this.bind(this.onInput)}"></textarea>
                 <nav data-if="${this.cond(() => this.state.hasSecret)}">
                     <button data-bind-click="${this.bind(this.nextStep)}">Continue</button>
@@ -351,8 +358,8 @@ class AddDescriptionStep extends Component {
         return safeHtml`
             <section class="card">
                 <h2>Does your secret need a description?</h2>
-                <code>${this.state.secret}</code>
-                <textarea placeholder="Enter a description if needed" autofocus data-bind
+                <pre>${this.state.secret}</pre>
+                <textarea placeholder="Enter a description if needed" autofocus class="editing"
                           data-bind-input="${this.bind(this.onInput)}"></textarea>
                 <nav>
                     <button data-bind-click="${this.bind(this.nextStep)}">Continue</button>
@@ -383,7 +390,7 @@ class AddExpirationStep extends Component {
         return safeHtml`
             <section class="card">
                 <h2>Should the secret delete itself if it's not revealed in time?</h2>
-                <code>${this.state.secret}</code>
+                <pre>${this.state.secret}</pre>
                 <p>${this.state.description}</p>
                 <nav class="visualRange">
                     <button data-bind-click="${this.bind(() => this.nextStep(Number.MAX_SAFE_INTEGER))}">No expi&shy;ration</button>
@@ -432,11 +439,11 @@ class LastStep extends Component {
         return safeHtml`
             <section class="card">
                 <h2>${this.state.heading}</h2>
-                <code>${this.state.secret}</code>
+                <pre>${this.state.secret}</pre>
                 <p>${this.state.description}</p>
                 <p class="vertical-spacer">Use the following link to share your secret:</p>
-                <div class="flex-container vertical-padding">
-                    <textarea readonly id="share_url" class="flex break-all">${this.state.url}</textarea>
+                <div class="right-action vertical-padding">
+                    <textarea readonly id="share_url" class="break-all">${this.state.url}</textarea>
                     <button data-bind-click="${this.bind(this.copyUrlToClipboard)}" id="copy" title="Copy to clipboard"><span class="icon-clipboard"></span></button>
                 </div>
                 <button data-bind-click="${this.bind(this.startAgain)}" class="secondary">I want to share another secret</button>
