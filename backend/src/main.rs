@@ -21,15 +21,14 @@ impl<'a> HexSlice<'a> {
 impl fmt::Display for HexSlice<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for byte in self.0 {
-            write!(f, "{:x}", byte)?;
+            write!(f, "{byte:x}")?;
         }
         Ok(())
     }
 }
 
 mod models {
-    use super::*;
-
+    use super::serde;
 
     #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
     pub struct SafeRepresentation {
@@ -63,7 +62,7 @@ mod models {
             }
         }
 
-        pub fn to_representation(self: &Self) -> SafeRepresentation {
+        pub fn to_representation(&self) -> SafeRepresentation {
             SafeRepresentation {
                 open_duration: self.open_duration.as_secs(),
                 unlocks_left: None,
@@ -86,21 +85,25 @@ impl Vault {
         }
     }
 
-    fn safe_exists(self: &Self, id: &str) -> bool {
+    fn safe_exists(&self, id: &str) -> bool {
         let readable_safes = self.safes.read().unwrap();
-        return readable_safes.contains_key(id);
+        readable_safes.contains_key(id)
     }
 
-    fn lock_safe(self: &Self, id: String, safe: models::Safe) {
+    fn lock_safe(&self, id: String, safe: models::Safe) {
         let mut writable_safes = self.safes.write().unwrap();
         writable_safes.insert(id, safe);
     }
 
-    fn unlock_safe(self: &Self, id: &str) -> Option<models::Safe> {
+    fn unlock_safe(&self, id: &str) -> Option<models::Safe> {
         let mut writable_safes = self.safes.write().unwrap();
         let mut remove = false;
         let result = match writable_safes.get_mut(id) {
-            Some(safe) if std::time::Instant::now() - safe.open_duration < safe.created_at => {
+            Some(safe)
+                if std::time::Instant::now()
+                    .checked_sub(safe.open_duration)
+                    .map_or(false, |x| x < safe.created_at) =>
+            {
                 safe.unlocks_left -= 1;
                 remove = safe.unlocks_left == 0;
                 Some(safe.clone())
@@ -138,20 +141,19 @@ fn json_body<T: serde::de::DeserializeOwned + Send>(
 
 /// Handlers for the public API
 mod handlers {
-    use super::*;
+    use super::{json_not_found, json_ok, models, thread_rng, HashMap, HexSlice, Rng, Vault};
     use models::{Safe, SafeRepresentation};
 
     pub async fn unlock_safe(
         id: String,
         vault: Vault,
     ) -> Result<impl warp::Reply, warp::Rejection> {
-        match vault.unlock_safe(&id) {
-            Some(safe) => Ok(json_ok(&safe.to_representation())),
-            None => {
-                let mut error = HashMap::new();
-                error.insert("message", format!("Safe '{}' not found", id));
-                Ok(json_not_found(&error))
-            }
+        if let Some(safe) = vault.unlock_safe(&id) {
+            Ok(json_ok(&safe.to_representation()))
+        } else {
+            let mut error = HashMap::new();
+            error.insert("message", format!("Safe '{id}' not found"));
+            Ok(json_not_found(&error))
         }
     }
 
@@ -167,7 +169,7 @@ mod handlers {
         vault.lock_safe(id.clone(), safe);
 
         let mut response_body = HashMap::new();
-        response_body.insert("href", format!("/safes/{}", id));
+        response_body.insert("href", format!("/safes/{id}"));
         Ok(json_ok(&response_body))
     }
 }
@@ -180,10 +182,7 @@ fn with_vault(
 
 #[tokio::main]
 async fn main() {
-    let port = env::var("PORT")
-        .ok()
-        .map(|x| x.parse::<u16>())
-        .unwrap_or(Ok(8080));
+    let port = env::var("PORT").ok().map_or(Ok(8080), |x| x.parse::<u16>());
     if port.is_err() {
         println!("[ERROR] Invalid port: {}", port.unwrap_err());
         return;
@@ -210,12 +209,17 @@ async fn main() {
         .and(with_vault(vault))
         .and_then(handlers::unlock_safe);
 
-    let statics = warp::path("static")
-        .and(warp::fs::dir("./static/"));
+    let statics = warp::path("static").and(warp::fs::dir("./static/"));
 
     let index = warp::path::end().and(warp::fs::file("./index.html"));
 
-    warp::serve(get_safe.or(unlock_safe).or(store_secret).or(statics).or(index))
-        .run(([0, 0, 0, 0], port.unwrap()))
-        .await;
+    warp::serve(
+        get_safe
+            .or(unlock_safe)
+            .or(store_secret)
+            .or(statics)
+            .or(index),
+    )
+    .run(([0, 0, 0, 0], port.unwrap()))
+    .await;
 }
