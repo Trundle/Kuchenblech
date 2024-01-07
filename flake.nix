@@ -14,8 +14,6 @@
     crane = {
       url = "github:ipetkov/crane";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-utils.follows = "flake-utils";
-      inputs.rust-overlay.follows = "rust-overlay";
     };
   };
 
@@ -60,6 +58,12 @@
                 $out/share/static/img \
                 $out/share/static/js
             '';
+
+            meta = with lib; {
+              maintainers = with maintainers; [ trundle ];
+              license = with licenses; [ asl20 ];
+              mainProgram = "kuchenblech";
+            };
           };
 
           packages.default = self.packages.${system}.kuchenblech;
